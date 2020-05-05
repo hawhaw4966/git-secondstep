@@ -21,7 +21,7 @@ async function getRequest() {
     html = html.replace(/\r?\n/g, ""); //整形1: 改行などを削除して整形しやすくする
 
     //運行情報
-    let unko = html.match(/class="latestprice2 pid280">(.*?)<\/div>/)[1];
+    let unko = html.match(/class="latestprice2.pid280">(.*?)<\/div>/)[1];
     unko = unko.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g, ""); //整形2: タグを削除
     console.log(unko);
 
