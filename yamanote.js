@@ -26,9 +26,13 @@ async function getRequest() {
     console.log(unko);
 
     //時間
+    /*
     let jikan = html.match(/class="subText">(.*?)<\/span>/)[1];
     jikan = jikan.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g, ""); //整形2: タグを削除
     console.log(jikan);
+    */
+
+   let jikan = new Date().getTime(); // タイムスタンプを呼ぶので常に変わる
 
     const saveData = {
       date: jikan,
