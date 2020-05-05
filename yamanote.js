@@ -14,14 +14,14 @@ async function getRequest() {
   let response;
   try {
     response = await axios.get(
-      "https://transit.yahoo.co.jp/traininfo/detail/21/0/"
+      "https://onedannote.com/280/"
     );
     // console.log(response.data);
     let html = response.data;
     html = html.replace(/\r?\n/g, ""); //整形1: 改行などを削除して整形しやすくする
 
     //運行情報
-    let unko = html.match(/id="mdServiceStatus">(.*?)<\/div>/)[1];
+    let unko = html.match(/class="latestprice2 pid280">(.*?)<\/div>/)[1];
     unko = unko.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g, ""); //整形2: タグを削除
     console.log(unko);
 
