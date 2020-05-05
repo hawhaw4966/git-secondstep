@@ -8,7 +8,7 @@
 
       <h1>TOPICKS</h1>
 
-      
+
     <div id="app">
            {{ message }}
           </div>
@@ -28,7 +28,7 @@
                 getData: async function(){
                     const response = await axios.get('data.json')
                     console.log(response.data);
-                    this.message = response.data
+                    this.message = response.data[1]
                 },
             },
 
