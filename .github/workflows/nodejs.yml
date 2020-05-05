@@ -1,0 +1,377 @@
+🖋
+ProtoOutStudio-GW2020
+はじめに
+Powered by GitBook
+GitHub Actions
+
+​image この章で学ぶこと
+この章では、
+
+GitHub Actions の使い方を学ぶ
+
+リポジトリのプッシュをきっかけにした GitHub Actions からの LINE Notify の動作
+
+5分ごとなど定期的なタイミングをきっかけにした GitHub Actions からの LINE Notify の動作
+
+という内容を進めます。
+
+そうすることで、
+
+GitHub Actions を使って、何かのきっかけで動作できる API などを仕組みの理解と実践
+
+前章の GitHub Pages や今回の GitHub Actions のように今回の集中講座において GitHub の機能を使って発想を広げていく
+
+ところを目指します。
+
+GitHub Actions とは
+
+image
+GitHub Actionsは、GitHub のリポジトリ、つまりコードを保存するのと同じ場所でソフトウェア開発のワークフローを自動化します。
+
+自動化は、たとえば、リポジトリへプッシュするタイミングであったり、5分ごと・1日ごとなど定期的なタイミングも作ることができます。そのほかにも、さまざまなタイミングがあります。
+
+それぞれのタスクを用意してアクションを呼び出し、それらを組み合わせて自動的に動作するワークフローと呼ばれる仕組みを作成できます。
+
+作業の始め方
+
+image
+Visual Studio Code は、01-06-git のフォルダで作業を進めましょう。GitHubの git-firststep リポジトリとも関連づいているので始めやすいです。
+
+今回つくるもの
+
+image
+まず、一番シンプルなきっかけとして、リポジトリのプッシュするタイミングで LINE Notify にメッセージが送られる仕組みをつくります。
+
+
+image
+GitHub Actions は監視するロボットのようなものです。
+
+どうチェックするかの振る舞いはワークフローで設定します。こちらは、今回は .github/workflows/nodejs.yml という場所に置いておくと GitHub が理解して、GitHub Actions にチェックする振る舞いを教えてくれます。
+
+正確には、 .github/workflows フォルダに入れた YAML ファイルの中に指示を書いおけば動いてくれるのですが、今回は、ワークフローを一から組むのは大変なので、以下をコピーして使います。
+
+また、プッシュがチェックされる振る舞いをしたのちに、そう動くか。
+
+それは、action.js で今回は動かします。中身は LINE Notify に実際に送る部分は今までに覚えた LINE Notify のコードを、ほぼそのまま使えます。（多少の変更はします）
+
+ワークフローを作成
+
+image
+.githubというフォルダを作成し、そのなかにさらにworkflows というフォルダを作ります。
+
+
+image
+.githubの中のworkflowsフォルダの中にnodejs.ymlというファイルを作ります。
+
+
+image
+nodejs.ymlに以下のYAMLをコピーアンドペーストして保存します。
+
+name: LINE notify
+​
+on:
+  push:
+    branches: [ master ]
+    # プッシュ時に動作する
+​
+jobs:
+  build:
+​
+    # このジョブのために ubuntu サーバーを準備する
+    # まっさらなサーバーなので、以下で Node.js 自体の準備や npm install を行う
+    runs-on: ubuntu-latest
+​
+    # このジョブ自体をテストするためのテスト戦略 → 13.x で行う
+    strategy:
+      matrix:
+        node-version: [13.x]
+​
+    # 以下が実際のステップ
+    steps:
+​
+    # この例では、v2 を使用することにより、チェックアウトアクションの安定版を確実に使用するようにしています
+    - uses: actions/checkout@v2
+    # Node.js 13.x のセットアップ
+    - name: Use Node.js 13.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: '13.x'
+    # package.json を参考にインストールがはじまる、この場合は axios がインストール    
+    - name: npm install command
+      run: npm i
+    # Node.js 自体の準備や npm install ができたので、いよいよ node action.js でプログラムを実行
+    # Secret の LINE_TOKEN 値 を action.js に渡している
+    # LINE Notify にメッセージが行く
+    - name: LINE Notify app.js
+      run: LINE_TOKEN=${{secrets.LINE_TOKEN}} node action.js
+Secret の LINE_TOKEN 値 を設定します
+今回、公開されているリポジトリに、LINE Notifyのトークンのような自分しか知りえないような大事な情報を載せてしまうと、悪用される可能性があるので、避けねばなりません。
+
+ということで、さきほどの nodejs.yml では、すでに、 Secret の LINE_TOKEN 値という設定が渡されている状態になっているので、 Secret の LINE_TOKEN 値を設定します。
+
+
+image
+これで、GitHub内に秘密の形で LINE_TOKEN が保存されて、ワークフローから実際に送る部分の action.js へと、秘密に伝わる仕組みができました。
+
+
+image
+git-firststep のGitHubリポジトリでSettingsをクリックします。
+
+
+image
+左のメニューから Secrets をクリックします。
+
+
+image
+Add a new Secret をクリックします。
+
+
+image
+Name に LINE_TOKEN として Value に今回使う LINE Notify トークンを入れて、 Add secret を押します。
+
+
+image
+これで登録完了です。
+
+axios パッケージを使えるようにする
+まだ、このフォルダで npm が使えるようになっていません。
+
+事前準備の Node.js / npm 基礎 を思い出しましょう。
+
+npm init -y
+このコマンドを実行して、npm をこのフォルダで使えるようにします。
+
+npm i axios
+このコマンドを実行して、パッケージ axios をインストールします。
+
+npm list axios
+このコマンドを実行して、インストールされているかチェックします。
+
+01-02-axios@1.0.0 ＊＊＊＊\01-02-axios
+`-- axios@0.19.2
+このような結果が出ればOKです。 axios パッケージを使えるようになりました。
+
+.gitignore というGitリポジトリ上の除外(ignore)ファイルの設定
+ここで大事なポイントがあります。
+
+npm_modules フォルダには、axiosに関連して大量にパッケージがインストールされますが、これは手元で動かしたり、サーバー上で動かすときに必要なもので、GitHubに履歴を管理しなくても良いものです。
+
+package.json には何がインストールされたかが記録されています。dependenciesの部分を注目してみましょう。axiosが入っています。
+
+{
+  "name": "01-06-git",
+  "version": "1.0.0",
+  "description": "",
+  "main": "action.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1ft-seabass/git-firststep.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/1ft-seabass/git-firststep/issues"
+  },
+  "homepage": "https://github.com/1ft-seabass/git-firststep#readme",
+  "dependencies": {
+    "axios": "^0.19.2"
+  }
+}
+実は、 package.json ファイルがフォルダにある状態で npm i という axios などの指定しないまま実行すると、 package.json の中身にしたがって、全部インストールして再現くれます。
+
+.gitignore というGitリポジトリ上の除外(ignore)ファイルの設定
+ということで、node_modules以下のファイルを全部除外するために、.gitignore というGitリポジトリ上の除外(ignore)ファイルの設定をします。
+
+.gitignore という新しいファイルを作り、以下をコピーペーストして保存します。
+
+node_modules
+これは「node_modules以下のファイルを全部除外する」という意味です。こうすることで、ファイル追加時から無視されて、リモートリポジトリに反映されることはありません。
+
+どう動くかの action.js プログラムの作成
+LINE Notify APIにつなぐコードを作りましょう。
+
+action.js で新規ファイルを作成して
+
+以下のソースコードをコピーペーストして保存します。
+
+const axios = require('axios');
+const qs = require('querystring');
+​
+const LINE_NOTIFY_API_URL = 'https://notify-api.line.me/api/notify';
+​
+// GitHub Actions で実行する際に Secret 値 LINE_TOKEN を利用する
+// 
+// 実際には、GitHub Actions の
+// run: LINE_TOKEN=${{secrets.LINE_TOKEN}} node action.js
+// という書き方で渡されています
+const LINE_NOTIFY_TOKEN = process.env.LINE_TOKEN;
+​
+let config = {
+    url: LINE_NOTIFY_API_URL,
+    method: 'post',
+    headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer ' + LINE_NOTIFY_TOKEN
+    },
+    data: qs.stringify({
+        message: 'ProtoOut Studioからの通知だよー！',
+    })
+}
+​
+async function getRequest() {
+​
+  ////// LINE Notify に送る ////////////////////////
+​
+  try {
+    const responseLINENotify = await axios.request(config);
+    console.log(responseLINENotify.data);
+  } catch (error) {
+    console.error(error);
+  }
+​
+}
+​
+// getRequest を呼び出してデータを読み込む
+getRequest();
+いよいよプッシュしてみましょう
+さて、ここまでで設定は完了です。
+
+
+image
+.github\workflows フォルダがある
+
+上記フォルダの中に nodejs.yml がある
+
+.gitignore が追加されている
+
+action.js が追加されている
+
+package.json がある
+
+あたりを、ちゃんとできているか確認しましょう。
+
+TIPS : 複数のファイルを更新するときに便利な git add コマンドの指定
+ここで一つ便利なTIPS。
+
+さきほどまでは index.html のような一つのファイルなので名指しでよいですが、今回のように複数のファイルを更新するときに、今後大変になりそうですよね。
+
+その場合は、便利な git add コマンドの指定の仕方があります。
+
+git add .
+「git で add というコマンドを実行します。. という指定なのでそのフォルダ直下を全てたどって更新されたファイルを更新お願いします。」という意味です。
+
+これで実行すると、そのフォルダ直下を全て辿って更新されたファイルを追加してくれます。
+
+今後、使う機会が多くなると思うので覚えておきましょう。
+
+プッシュしてみる
+こちらのファイル群を一気に、プッシュしてみましょう。
+
+​Gitの章 で行った、追加→コミット→プッシュの作業を思い出しましょう。
+
+git add .
+add コマンドでインデックスに追加します。
+
+git commit -m 'Add Workflows'
+commit コマンドでインデックスから正式にローカルリポジトリに追加します。
+
+git push origin master
+push でローカルリポジトリからリモートリポジトリに反映します。
+
+Actions を確認
+このまま、LINE Notify の通知を待ってもいいですが、動作が気になりますよね。（教える私の方も気になります。
+
+ということで、 GitHub Actions のページを見に行きましょう。
+
+
+image
+リポジトリのメニューから Actions をクリックします。
+
+
+image
+すでに終わっているかもしれませんが、いま行ったワークフローの稼働状況が分かります。
+
+LINE Notify にも到着するはず
+上記が成功していればきっと大丈夫。
+
+
+image
+演習：繰り返しプッシュしてメッセージを体験しよう
+目的
+GitHub Actions の機能を、手を動かして体感してみる。
+
+問題
+何かしらファイルを更新し、GitHub に繰り返しプッシュして LINE Notify にメッセージを出してみよう。余裕があれば、文言を変えてみたりしてみよう。
+
+エクストラ：5分ごとに動くようにしてみる
+nodejs.yml の on の部分を schedule.cron に変更すると定期的な実行にすることができます。
+
+Cron式の書き方
+
+​https://www.codeflow.site/ja/article/cron-expressions​
+
+以下のソースで nodejs.yml 上書きして、再度プッシュしてみましょう。
+
+name: LINE notify
+​
+on:
+  schedule:
+  - cron:  '*/5 * * * *'
+  # 5分ごと # ここだけ変更
+​
+jobs:
+  build:
+​
+    # このジョブのために ubuntu サーバーを準備する
+    # まっさらなサーバーなので、以下で Node.js 自体の準備や npm install を行う
+    runs-on: ubuntu-latest
+​
+    # このジョブ自体をテストするためのテスト戦略 → 13.x で行う
+    strategy:
+      matrix:
+        node-version: [13.x]
+​
+    # 以下が実際のステップ
+    steps:
+​
+    # この例では、v2 を使用することにより、チェックアウトアクションの安定版を確実に使用するようにしています
+    - uses: actions/checkout@v2
+    # Node.js 13.x のセットアップ
+    - name: Use Node.js 13.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: '13.x'
+    # package.json を参考にインストールがはじまる、この場合は axios がインストール    
+    - name: npm install command
+      run: npm i
+    # Node.js 自体の準備や npm install ができたので、いよいよ node action.js でプログラムを実行
+    # Secret の LINE_TOKEN 値 を action.js に渡している
+    # LINE Notify にメッセージが行く
+    - name: LINE Notify app.js
+      run: LINE_TOKEN=${{secrets.LINE_TOKEN}} node action.js
+5分なので少し待ちますが、定期的に動きます。
+
+動かせたら一旦、pushきっかけのコードに戻しておきましょう。
+
+なにに使えるか
+1時間に1度など定期的にどこかにチェックしに行くような仕組みを GitHub Actions に任せられる
+
+GitHub Actions + LINE Notify で、時間感覚を忘れがちなリモート作業の、アラートに使ったり
+
+GitHub Actions のリミット
+​https://help.github.com/ja/actions/getting-started-with-github-actions/about-github-actions#usage-limits​
+
+day 1 - Previous
+GitHub / Git
+Next - day 1
+学んだことを作りこむタイム
+
+
+Last updated 2 days ago
+WAS THIS PAGE HELPFUL?
+Search...
+Search Placeholder
