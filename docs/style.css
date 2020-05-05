@@ -1,0 +1,34 @@
+body {
+  width:400px;
+  margin: 0  auto;
+  font-size: 16px;
+ font-family: Verdana,sans-serif;
+ background: #3498db;
+ /* background: url(images/back.jpg); */
+     
+}
+
+h1 {
+  font-size: 35px;
+}
+  p {
+      color: blue;margin:0,auto;
+    }
+
+#top {
+  margin : 10 10 0 0;
+  width: 600px;
+  height: 300px;
+     background-color: rgba(3, 206, 233, 0.376);
+    }
+
+#woo {
+  margin: 10 10 0 0;
+  width : 200px;
+}
+#second { 
+  margin : 10 10 0 0;
+  width: 600px;
+  height: 900px;
+  background-color: rgba(3, 206, 233, 0.376);
+}
